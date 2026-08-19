@@ -449,3 +449,41 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# ===========================================================
+# C++ / CMake / SFML 보완 규칙
+# 위 Visual Studio 템플릿은 .NET 기준아므로 아래 내용을 추가하여 보완한다.
+# ===========================================================
+
+# 1. 소스 트리 보호
+#   위 템플릿의 [Dd]ebug/ [Ll]og/ **/[Bb]in/* 규칙이 src/meno/debug/ 같은 정상 소스 폴더까지 무시하지 않도록 보완.
+#   필요 디렉토리가 추가될 경우, 아래 목록에 반영하여 확장하도록 하자.
+!include/**
+!src/**
+!examples/**
+!tests/**
+!tools/**
+!docs/**
+!assets/**
+!cmake/**
+
+# 2. 빌드 디렉터리 (CLion, 수동 변형 포함)
+/build*/
+cmake-build-*/
+
+# 3. GCC/MinGW·Clang 산출물
+#   1의 소스 트리 보호 규칙 뒤에 와야 src/ 안의 산출물도 무시할 수 있다.
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+
+# 4. clangd / ccls 인덱스
+.cache/
+.ccls-cache/
+
+# 5. OS·클라우드 생성 파일
+Thumbs.db
+desktop.ini
+.DS_Store
