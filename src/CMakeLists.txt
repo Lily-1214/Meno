@@ -1,10 +1,11 @@
 # ---------------------------------------------------------------------------
 # meno 라이브러리 본체
 # ---------------------------------------------------------------------------
-# 소스를 file(GLOB)이 아니라 명시적으로 나열한다. GLOB은 파일이 추가돼도 cmake를
-# 다시 돌리기 전까지 빌드에 반영되지 않아, 팀원이 git pull 후 "왜 링크 에러가
-# 나지" 하는 상황을 만든다. CONFIGURE_DEPENDS가 완화해 주지만 생성기마다 동작이
-# 다르다.
+# file(GLOB) 대신 소스가 눈에 보이도록 나열한다.
+# GLOB은 파일이 추가돼도 cmake를 다시 돌리기 전까지 빌드에 반영되지 않아,
+# 팀원이 git pull 한 후, Linkage에서 오류를 맞닥뜨리게 만든다.
+# CONFIGURE_DEPENDS가 완화해 주지만 생성기마다 동작이 다르므로,
+# 다소 하드코딩으로 보이더라도 소스의 이름을 명해두었다.
 #
 # 담당 경계: 새 소스를 추가할 때 자기 영역 아래에만 넣으면 충돌이 없다.
 #   meno/core/       -- Core 담당 (Application, Window, Clock)
@@ -27,12 +28,13 @@ target_include_directories(meno
         PRIVATE
         # sfml_backend/*.hpp 를 "sfml_backend/..." 로 include 하기 위한 경로.
         # PRIVATE이라 사용자 타깃에는 전파되지 않는다 = 백엔드는 계속 감춰진다.
+        # sfml과 상호작용하는 back_end 부분 구현 후 반영.
         ${CMAKE_CURRENT_SOURCE_DIR}/meno
 )
 
 # SFML은 PRIVATE으로 링크한다. 이게 "백엔드 감추기"의 빌드 시스템 쪽 절반이다.
-# PUBLIC이면 meno를 쓰는 타깃에 SFML 헤더 경로가 전파돼서, 사용자가 실수로
-# <SFML/...>을 include할 수 있게 되고 pimpl·friend로 쌓은 은닉이 무의미해진다.
+# PUBLIC이면 meno를 쓰는 타깃에 SFML 헤더 경로가 전파되어,
+# 사용자가 실수로 <SFML/...>을 include할 수 있게 된다 -> pimpl·friend 실현한 encapsulation이 무용지물이 됨.
 #
 # SFML::Graphics는 SFML::Window와 SFML::System을 전이 의존으로 끌고 온다.
 # 오디오는 렌더 라이브러리의 의존이 아니므로 여기서 링크하지 않는다.
