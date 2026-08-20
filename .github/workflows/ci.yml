@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 2D_Renderer, GameObject-Demo]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 공개 헤더에 SFML이 새지 않았는지 검사한다.
+  # 빌드보다 훨씬 빠르므로 따로 떼어 먼저 실패하게 한다.
+  # 기획서·UML의 핵심 요구사항(P3 의존성 은닉)을 사람이 아니라 CI가 지킨다.
+  # ---------------------------------------------------------------------------
+  headers:
+    name: 공개 헤더 경계 검사
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/check_headers.py
+
+  # ---------------------------------------------------------------------------
+  # 빌드 + 테스트.
+  #
+  # 기획서 6-1은 "Windows/Linux × MSVC/GCC/Clang"(6조합)으로 적혀 있으나
+  # Linux × MSVC 조합은 존재하지 않는다. 실제 의미 있는 2조합으로 시작하고,
+  # 여유가 생기면 Ubuntu/Clang을 추가한다.
+  # ---------------------------------------------------------------------------
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows / MSVC
+            os: windows-latest
+          - name: Ubuntu / GCC
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # SFML 3는 Linux에서 X11·udev·freetype 등의 개발 패키지를 요구한다.
+      - name: 시스템 의존성 설치 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxrandr-dev libxcursor-dev libxi-dev libudev-dev \
+            libfreetype-dev libgl1-mesa-dev libegl1-mesa-dev \
+            libflac-dev libvorbis-dev libogg-dev
+
+      # SFML과 그 의존성 빌드가 10분쯤 걸린다. 캐시하지 않으면 매 푸시마다 낸다.
+      - name: SFML 빌드 캐시
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ runner.os }}-sfml3.1.0-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: deps-${{ runner.os }}-sfml3.1.0-
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      # 값 타입 테스트는 창을 열지 않으므로 헤드리스 러너에서도 돈다.
+      - name: Test
+        run: ctest --test-dir build --build-config Release --output-on-failure
