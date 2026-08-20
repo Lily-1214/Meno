@@ -8,7 +8,7 @@ namespace meno {
 // SFML을 담지 않는 순수 데이터라 pimpl(pointer to implementation; sfml 구현부를 포인터로 가리키기)이 필요 없다.
 // 값으로 자유롭게 복사하고 게임 쪽에서 들고 있다가, Renderer::setCamera로 넘기면 된다.
 struct Camera2D {
-    /// 화면 중앙에 올 월드의 좌표.
+    // 화면 중앙에 올 월드의 좌표.
     Vec2f center{0.f, 0.f};
 
     // 화면에 담을 월드 영역의 크기.
