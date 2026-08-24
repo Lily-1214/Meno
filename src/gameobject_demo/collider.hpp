@@ -2,13 +2,15 @@
 #define GAMEOBJCECT_DEMO_COLLIDER_H
 
 #include "../../include/meno/math/Vec2.hpp"
-#include "GameObject.h"
+#include "component.hpp"
 
 namespace meno {
 
+class GameObject; //전방선언
+
 enum class ColliderType { Box, Circle };
 
-struct Collider {
+struct Collider : public Component {
     Vec2f offset{};
     bool isTrigger{false}; // 충돌 감지 여부, true이면 충돌 시 이벤트만 발생하고 물리적 반응은 없음
     int layer{0};
