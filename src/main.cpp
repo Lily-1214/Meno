@@ -7,7 +7,6 @@
 
 int main() {
     sf::RenderWindow window(sf::VideoMode({800, 600}), "GameObjectDemo");
-    window.setFramerateLimit(60);
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {

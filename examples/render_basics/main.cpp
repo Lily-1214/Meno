@@ -70,8 +70,6 @@ std::optional<meno::Font> findSystemFont() {
 
 int main() {
     meno::Window window{{960u, 540u}, "meno - 2D 렌더 기초"};
-    window.setFramerateLimit(60);
-
     meno::Renderer renderer{window};
 
     const meno::Texture checker = makeCheckerTexture();
