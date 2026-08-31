@@ -32,8 +32,9 @@ void Application::run(Clock& clock) {
     onStart();
 
     while (running_) {
-        const double frameTime = std::clamp(clock.restart(), 0.0, config_.maxFrameTime);
-        Time::advance(frameTime);
+        const double realFrameTime = std::max(clock.restart(), 0.0);
+        const double frameTime = std::min(realFrameTime, config_.maxFrameTime);
+        Time::beginFrame(frameTime, realFrameTime);
         accumulator += frameTime;
 
         processEvents();
@@ -41,6 +42,7 @@ void Application::run(Clock& clock) {
         std::size_t updateCount = 0;
         while (running_ && accumulator >= config_.fixedTimeStep &&
                updateCount < config_.maxUpdatesPerFrame) {
+            Time::advanceStep(config_.fixedTimeStep);
             update(config_.fixedTimeStep);
             accumulator -= config_.fixedTimeStep;
             ++updateCount;

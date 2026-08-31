@@ -19,11 +19,17 @@ public:
     using Application::Application;
 
     std::vector<double> updateDeltas;
+    std::vector<double> observedDeltas;
+    std::vector<double> observedElapsedTimes;
     std::size_t renderCount = 0;
     std::vector<double> interpolationAlphas;
 
 private:
-    void update(double deltaTime) override { updateDeltas.push_back(deltaTime); }
+    void update(double deltaTime) override {
+        updateDeltas.push_back(deltaTime);
+        observedDeltas.push_back(meno::Time::deltaTime());
+        observedElapsedTimes.push_back(meno::Time::elapsedTime());
+    }
 
     void render(double interpolationAlpha) override {
         ++renderCount;
@@ -47,7 +53,7 @@ int main() {
     meno::Clock clock([&] { return times.at(nextTime++); });
 
     TestApplication app({.fixedTimeStep = 0.01,
-                         .maxFrameTime = 0.25,
+                         .maxFrameTime = 0.05,
                          .maxUpdatesPerFrame = 3});
     app.run(clock);
 
@@ -58,11 +64,16 @@ int main() {
     assert(app.interpolationAlphas[2] >= 0.0 && app.interpolationAlphas[2] < 1.0);
     // 첫 두 프레임에서 1회, 밀린 세 번째 프레임에서 상한인 3회.
     assert(app.updateDeltas.size() == 4);
-    for (const double delta : app.updateDeltas) {
-        assert(near(delta, 0.01));
+    for (std::size_t index = 0; index < app.updateDeltas.size(); ++index) {
+        assert(near(app.updateDeltas[index], 0.01));
+        assert(near(app.observedDeltas[index], 0.01));
+        assert(near(app.observedElapsedTimes[index],
+                    0.01 * static_cast<double>(index + 1)));
     }
-    assert(near(meno::Time::deltaTime(), 0.1));
+    assert(near(meno::Time::deltaTime(), 0.01));
     assert(near(meno::Time::fixedDeltaTime(), 0.01));
-    assert(near(meno::Time::elapsedTime(), 0.117));
+    assert(near(meno::Time::elapsedTime(), 0.04));
+    assert(near(meno::Time::frameDeltaTime(), 0.05));
+    assert(near(meno::Time::realElapsedTime(), 0.117));
     assert(!app.isRunning());
 }

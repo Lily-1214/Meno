@@ -79,8 +79,11 @@ int main() {
 }
 ```
 
-`Time::deltaTime()`, `Time::fixedDeltaTime()`, `Time::elapsedTime()`으로 루프의 시간
-정보를 읽을 수 있다. 프레임 제한이 필요하면 `Clock::setFramerateLimit()`을 사용한다.
+`Time::deltaTime()`, `Time::fixedDeltaTime()`, `Time::elapsedTime()`으로 fixed update 기준의
+시뮬레이션 시간을 읽을 수 있다. 프레임 기준의 가변 시간과 실제 누적 시간은
+`Time::frameDeltaTime()`, `Time::realElapsedTime()`으로 읽는다. `frameDeltaTime()`은
+`maxFrameTime`으로 제한되지만 `realElapsedTime()`은 제한되지 않는다. 프레임 제한이 필요하면
+`Clock::setFramerateLimit()`을 사용한다.
 
 ## 디렉터리 구조
 
