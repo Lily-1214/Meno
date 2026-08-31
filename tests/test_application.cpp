@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <stdexcept>
 #include <vector>
 
 namespace {
@@ -37,6 +38,46 @@ private:
         if (renderCount == 3) {
             stop();
         }
+    }
+};
+
+class ThrowingApplication final : public meno::Application {
+public:
+    using Application::Application;
+
+    std::size_t onStopCount = 0;
+    std::size_t renderCount = 0;
+
+private:
+    void update(double) override {
+        if (throwOnNextUpdate_) {
+            throwOnNextUpdate_ = false;
+            throw std::runtime_error("update failed");
+        }
+    }
+
+    void render(double) override {
+        ++renderCount;
+        stop();
+    }
+
+    void onStop() override { ++onStopCount; }
+
+    bool throwOnNextUpdate_ = true;
+};
+
+class ReentrantApplication final : public meno::Application {
+public:
+    bool rejectedReentry = false;
+
+private:
+    void onStart() override {
+        try {
+            run();
+        } catch (const std::logic_error&) {
+            rejectedReentry = true;
+        }
+        stop();
     }
 };
 
@@ -76,4 +117,31 @@ int main() {
     assert(near(meno::Time::frameDeltaTime(), 0.05));
     assert(near(meno::Time::realElapsedTime(), 0.117));
     assert(!app.isRunning());
+
+    const std::vector<TimePoint> retryTimes{TimePoint{}, TimePoint{} + 20ms,
+                                            TimePoint{} + 40ms};
+    std::size_t nextRetryTime = 0;
+    meno::Clock retryClock([&] { return retryTimes.at(nextRetryTime++); });
+    ThrowingApplication throwingApp({.fixedTimeStep = 0.01});
+
+    bool updateExceptionCaught = false;
+    try {
+        throwingApp.run(retryClock);
+    } catch (const std::runtime_error&) {
+        updateExceptionCaught = true;
+    }
+
+    assert(updateExceptionCaught);
+    assert(!throwingApp.isRunning());
+    assert(throwingApp.onStopCount == 0);
+
+    throwingApp.run(retryClock);
+    assert(!throwingApp.isRunning());
+    assert(throwingApp.renderCount == 1);
+    assert(throwingApp.onStopCount == 1);
+
+    ReentrantApplication reentrantApp;
+    reentrantApp.run();
+    assert(reentrantApp.rejectedReentry);
+    assert(!reentrantApp.isRunning());
 }

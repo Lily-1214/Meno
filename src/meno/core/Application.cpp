@@ -23,10 +23,16 @@ void Application::run() {
 
 void Application::run(Clock& clock) {
     if (running_) {
-        return;
+        throw std::logic_error("Application is already running");
     }
 
     running_ = true;
+    struct RunGuard {
+        bool& running;
+
+        ~RunGuard() noexcept { running = false; }
+    } guard{running_};
+
     Time::beginRun(config_.fixedTimeStep);
     double accumulator = 0.0;
     onStart();

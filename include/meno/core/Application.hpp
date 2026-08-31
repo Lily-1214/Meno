@@ -21,6 +21,8 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
+    /// 콜백의 예외는 상태를 정리한 뒤 재전파한다. onStop은 정상 종료에서만 호출된다.
+    /// 이미 실행 중인 Application에 다시 호출하면 std::logic_error를 던진다.
     void run();
     void run(Clock& clock);
     void stop() noexcept;
