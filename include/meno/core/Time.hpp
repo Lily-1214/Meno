@@ -13,7 +13,7 @@ public:
     [[nodiscard]] static double fixedDeltaTime() noexcept;
     /// 처리 완료된 fixed update 기준의 누적 시뮬레이션 시간.
     [[nodiscard]] static double elapsedTime() noexcept;
-    /// 현재 프레임에서 시뮬레이션에 반영되는, maxFrameTime으로 제한된 시간 간격.
+    /// 현재 프레임에서 처리 가능한 fixed update 수로 제한된 시간 간격.
     [[nodiscard]] static double frameDeltaTime() noexcept;
     /// Clock이 측정한 실제 누적 시간.
     [[nodiscard]] static double realElapsedTime() noexcept;

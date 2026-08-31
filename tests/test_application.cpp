@@ -95,7 +95,6 @@ int main() {
                       [](meno::Clock::Duration) {});
 
     TestApplication app({.fixedTimeStep = 0.01,
-                         .maxFrameTime = 0.05,
                          .maxUpdatesPerFrame = 3});
     app.run(clock);
 
@@ -115,7 +114,7 @@ int main() {
     assert(near(meno::Time::deltaTime(), 0.01));
     assert(near(meno::Time::fixedDeltaTime(), 0.01));
     assert(near(meno::Time::elapsedTime(), 0.04));
-    assert(near(meno::Time::frameDeltaTime(), 0.05));
+    assert(near(meno::Time::frameDeltaTime(), 0.03));
     assert(near(meno::Time::realElapsedTime(), 0.117));
     assert(!app.isRunning());
 

@@ -10,8 +10,7 @@
 namespace meno {
 
 Application::Application(ApplicationConfig config) : config_(config) {
-    if (config_.fixedTimeStep <= 0.0 || config_.maxFrameTime <= 0.0 ||
-        config_.maxUpdatesPerFrame == 0) {
+    if (config_.fixedTimeStep <= 0.0 || config_.maxUpdatesPerFrame == 0) {
         throw std::invalid_argument("Application timing values must be positive");
     }
 }
@@ -38,9 +37,12 @@ void Application::run(Clock& clock) {
     double accumulator = 0.0;
     onStart();
 
+    const double maxFrameTime =
+        config_.fixedTimeStep * static_cast<double>(config_.maxUpdatesPerFrame);
+
     while (running_) {
         const double realFrameTime = std::max(clock.restart(), 0.0);
-        const double frameTime = std::min(realFrameTime, config_.maxFrameTime);
+        const double frameTime = std::min(realFrameTime, maxFrameTime);
         Time::beginFrame(frameTime, realFrameTime);
         accumulator += frameTime;
 
