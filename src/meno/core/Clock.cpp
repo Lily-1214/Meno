@@ -1,23 +1,25 @@
 #include <meno/core/Clock.hpp>
 
-#include <utility>
 #include <thread>
+#include <utility>
 
 namespace meno {
 
-Clock::Clock() : Clock([] { return NativeClock::now(); }) {}
+Clock::Clock()
+    : Clock([] { return NativeClock::now(); },
+            [](Duration duration) { std::this_thread::sleep_for(duration); }) {}
 
-Clock::Clock(NowFunction now) : now_(std::move(now)) {
+Clock::Clock(NowFunction now, WaitFunction wait)
+    : now_(std::move(now)), wait_(std::move(wait)) {
     startTime_ = now_();
     lastTime_ = startTime_;
 }
 
 double Clock::restart() {
     TimePoint current = now_();
-    const TimePoint earliestFrameEnd = lastTime_ + minimumFrameDuration_;
-    if (minimumFrameDuration_ > NativeClock::duration::zero() &&
-        current < earliestFrameEnd) {
-        std::this_thread::sleep_until(earliestFrameEnd);
+    const Duration elapsed = current - lastTime_;
+    if (elapsed < minimumFrameDuration_) {
+        wait_(minimumFrameDuration_ - elapsed);
         current = now_();
     }
     const std::chrono::duration<double> delta = current - lastTime_;
@@ -27,10 +29,10 @@ double Clock::restart() {
 
 void Clock::setFramerateLimit(unsigned int framesPerSecond) noexcept {
     if (framesPerSecond == 0) {
-        minimumFrameDuration_ = NativeClock::duration::zero();
+        minimumFrameDuration_ = Duration::zero();
         return;
     }
-    minimumFrameDuration_ = std::chrono::duration_cast<NativeClock::duration>(
+    minimumFrameDuration_ = std::chrono::duration_cast<Duration>(
         std::chrono::duration<double>(1.0 / static_cast<double>(framesPerSecond)));
 }
 

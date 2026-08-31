@@ -6,15 +6,17 @@
 namespace meno {
 
 /// 실제 시간을 측정하는 고정밀도 시계.
-/// NowFunction을 주입하면 대기 없이 단위 테스트할 수 있다.
+/// NowFunction과 WaitFunction을 주입하면 실제 대기 없이 단위 테스트할 수 있다.
 class Clock {
 public:
     using NativeClock = std::chrono::steady_clock;
     using TimePoint = NativeClock::time_point;
+    using Duration = NativeClock::duration;
     using NowFunction = std::function<TimePoint()>;
+    using WaitFunction = std::function<void(Duration)>;
 
     Clock();
-    explicit Clock(NowFunction now);
+    Clock(NowFunction now, WaitFunction wait);
 
     [[nodiscard]] double restart();
     [[nodiscard]] double elapsed() const;
@@ -23,9 +25,10 @@ public:
 
 private:
     NowFunction now_;
+    WaitFunction wait_;
     TimePoint startTime_;
     TimePoint lastTime_;
-    NativeClock::duration minimumFrameDuration_{};
+    Duration minimumFrameDuration_{};
 };
 
 } // namespace meno

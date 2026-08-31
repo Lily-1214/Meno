@@ -91,7 +91,8 @@ int main() {
     const std::vector<TimePoint> times{TimePoint{}, TimePoint{} + 5ms,
                                        TimePoint{} + 17ms, TimePoint{} + 117ms};
     std::size_t nextTime = 0;
-    meno::Clock clock([&] { return times.at(nextTime++); });
+    meno::Clock clock([&] { return times.at(nextTime++); },
+                      [](meno::Clock::Duration) {});
 
     TestApplication app({.fixedTimeStep = 0.01,
                          .maxFrameTime = 0.05,
@@ -121,7 +122,8 @@ int main() {
     const std::vector<TimePoint> retryTimes{TimePoint{}, TimePoint{} + 20ms,
                                             TimePoint{} + 40ms};
     std::size_t nextRetryTime = 0;
-    meno::Clock retryClock([&] { return retryTimes.at(nextRetryTime++); });
+    meno::Clock retryClock([&] { return retryTimes.at(nextRetryTime++); },
+                           [](meno::Clock::Duration) {});
     ThrowingApplication throwingApp({.fixedTimeStep = 0.01});
 
     bool updateExceptionCaught = false;
@@ -144,4 +146,27 @@ int main() {
     reentrantApp.run();
     assert(reentrantApp.rejectedReentry);
     assert(!reentrantApp.isRunning());
+
+    TimePoint limitedNow{};
+    std::size_t waitCount = 0;
+    meno::Clock limitedClock(
+        [&] { return limitedNow; },
+        [&](meno::Clock::Duration duration) {
+            ++waitCount;
+            limitedNow += duration;
+        });
+    limitedClock.setFramerateLimit(60);
+
+    assert(near(limitedClock.restart(), 1.0 / 60.0));
+    assert(waitCount == 1);
+    assert(near(limitedClock.elapsed(), 1.0 / 60.0));
+
+    limitedNow += 20ms;
+    assert(near(limitedClock.restart(), 0.02));
+    assert(waitCount == 1);
+
+    limitedClock.setFramerateLimit(0);
+    limitedNow += 5ms;
+    assert(near(limitedClock.restart(), 0.005));
+    assert(waitCount == 1);
 }
