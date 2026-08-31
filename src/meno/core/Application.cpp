@@ -55,7 +55,7 @@ void Application::run(Clock& clock) {
             ++updateCount;
         }
 
-        // 지연이 지속될 때 누적된 과거 프레임을 영원히 쏓지 않는다.
+        // 지연이 지속될 때 누적된 과거 프레임을 영원히 쫓지 않는다.
         if (updateCount == config_.maxUpdatesPerFrame &&
             accumulator >= config_.fixedTimeStep) {
             accumulator = std::fmod(accumulator, config_.fixedTimeStep);

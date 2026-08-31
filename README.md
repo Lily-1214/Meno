@@ -10,7 +10,7 @@ SFML 기반 2D 게임 개발 라이브러리. 서울과학기술대학교 캡스
 
 int main() {
     meno::Window window{{960u, 540u}, "내 게임"};
-meno::Renderer renderer{window};
+    meno::Renderer renderer{window};
 
     // 일반 게임은 meno::Application을 상속해 update/render만 구현한다.
     // Application이 고정 timestep 루프와 시간 누적을 담당한다.
