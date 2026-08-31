@@ -33,6 +33,7 @@ void Application::run(Clock& clock) {
         ~RunGuard() noexcept { running = false; }
     } guard{running_};
 
+    clock.setFramerateLimit(config_.framerateLimit);
     Time::beginRun(config_.fixedTimeStep);
     double accumulator = 0.0;
     onStart();

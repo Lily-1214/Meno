@@ -10,6 +10,8 @@ struct ApplicationConfig {
     double fixedTimeStep = 1.0 / 60.0;
     double maxFrameTime = 0.25;
     std::size_t maxUpdatesPerFrame = 8;
+    /// 초당 최대 프레임 수. 0이면 제한하지 않는다.
+    unsigned int framerateLimit = 0;
 };
 
 /// 고정 timestep 게임 루프의 기본 클래스.
