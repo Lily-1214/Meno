@@ -156,9 +156,14 @@ int main() {
         });
     limitedClock.setFramerateLimit(60);
 
-    assert(near(limitedClock.restart(), 1.0 / 60.0));
+    const double expectedFrameTime = 1.0 / 60.0;
+    const double clockTolerance =
+        std::chrono::duration<double>(meno::Clock::Duration{1}).count();
+    const double limitedDelta = limitedClock.restart();
+
+    assert(std::abs(limitedDelta - expectedFrameTime) <= clockTolerance);
     assert(waitCount == 1);
-    assert(near(limitedClock.elapsed(), 1.0 / 60.0));
+    assert(std::abs(limitedClock.elapsed() - expectedFrameTime) <= clockTolerance);
 
     limitedNow += 20ms;
     assert(near(limitedClock.restart(), 0.02));
